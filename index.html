@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#7657e8">
+  <meta name="description" content="RememberMe helps you keep track of birthdays, events and special days.">
+  <title>RememberMe – Never miss a special day</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="RememberMe home"><span class="brand-icon">🎉</span><span>Remember<span class="brand-accent">Me</span></span></a>
+      <button id="installBtn" class="install-btn" hidden>＋ Install app</button>
+    </header>
+
+    <main>
+      <section class="welcome">
+        <div class="welcome-copy-block">
+          <p class="eyebrow">YOUR PERSONAL OCCASION PLANNER</p>
+          <h1>Make every day <span>memorable.</span></h1>
+          <p class="welcome-copy">Keep the important dates close. We'll help you remember.</p>
+          <p class="today-date" id="todayDate"></p>
+        </div>
+        <div class="welcome-art" aria-hidden="true"><span>✦</span><span>🎈</span><span>✧</span></div>
+      </section>
+
+      <section class="stats" aria-label="Occasion summary">
+        <article class="stat-card purple"><span class="stat-emoji">🗓️</span><p>Total occasions</p><strong id="totalCount">0</strong></article>
+        <article class="stat-card peach"><span class="stat-emoji">⏰</span><p>Coming up</p><strong id="upcomingCount">0</strong></article>
+        <article class="stat-card mint"><span class="stat-emoji">🌟</span><p>Happening today</p><strong id="todayCount">0</strong></article>
+      </section>
+
+      <section class="content-grid">
+        <section class="panel form-panel">
+          <div class="section-heading"><div><p class="eyebrow">SAVE A SPECIAL DATE</p><h2 id="formHeading">Add an occasion</h2></div><span class="heading-emoji" aria-hidden="true">✉</span></div>
+          <form id="occasionForm">
+            <label for="occasionName">Occasion name</label>
+            <input id="occasionName" type="text" placeholder="e.g. Mom's birthday" maxlength="60" autocomplete="off" required>
+            <div class="form-row">
+              <div><label for="occasionDate">Date</label><input id="occasionDate" type="date" required></div>
+              <div><label for="occasionCategory">Category</label>
+                <select id="occasionCategory">
+                  <option>Birthday</option><option>Anniversary</option><option>College event</option><option>Festival</option><option>Meeting</option><option>Personal</option><option>Other</option>
+                </select>
+              </div>
+            </div>
+            <label for="occasionNotes">Notes <span class="optional">(optional)</span></label>
+            <textarea id="occasionNotes" rows="3" maxlength="240" placeholder="Add a little detail..."></textarea>
+            <label class="check-label"><input id="repeatYearly" type="checkbox" checked> Repeat every year</label>
+            <div class="form-actions"><button class="primary-btn" type="submit" id="saveBtn">＋ Save occasion</button><button class="cancel-btn" type="button" id="cancelEditBtn" hidden>Cancel</button></div>
+          </form>
+        </section>
+
+        <section class="panel list-panel">
+          <div class="section-heading list-heading"><div><p class="eyebrow">DON'T MISS A MOMENT</p><h2>Your occasions</h2></div><span class="heading-emoji">🎁</span></div>
+          <div class="toolbar"><input id="searchInput" type="search" placeholder="Search occasions..." aria-label="Search occasions"><select id="filterCategory" aria-label="Filter by category"><option value="All">All categories</option><option>Birthday</option><option>Anniversary</option><option>College event</option><option>Festival</option><option>Meeting</option><option>Personal</option><option>Other</option></select></div>
+          <div id="occasionList" class="occasion-list"></div>
+          <div id="emptyState" class="empty-state"><div>🌼</div><h3>Your special dates live here</h3><p>Add your first occasion using the form.</p></div>
+        </section>
+      </section>
+
+      <section class="panel calendar-panel" aria-labelledby="calendarHeading">
+        <div class="section-heading calendar-heading">
+          <div><p class="eyebrow">A LITTLE LOOK AHEAD</p><h2 id="calendarHeading">Monthly calendar</h2></div>
+          <div class="calendar-controls">
+            <button type="button" class="calendar-nav" id="prevMonthBtn" aria-label="Previous month">‹</button>
+            <strong id="calendarMonth" aria-live="polite"></strong>
+            <button type="button" class="calendar-nav" id="nextMonthBtn" aria-label="Next month">›</button>
+          </div>
+        </div>
+        <div class="calendar-weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+        <div class="calendar-grid" id="calendarGrid" aria-label="Occasions by date"></div>
+        <div class="selected-date-details" id="selectedDateDetails" aria-live="polite"></div>
+      </section>
+      <p class="privacy-note">🔒 Your occasions are saved on this device in this browser.</p>
+    </main>
+    <footer>Made with 💜 · RememberMe</footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>
