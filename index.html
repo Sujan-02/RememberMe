@@ -10,10 +10,122 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-shell">
+  <div id="authView" class="auth-view">
+    <header class="auth-topbar">
+      <a class="brand" href="#" aria-label="RememberMe home"><span class="brand-icon">🎉</span><span>Remember<span class="brand-accent">Me</span></span></a>
+      <span class="auth-top-note">A little more magic for every milestone <span aria-hidden="true">✦</span></span>
+    </header>
+    <main class="auth-layout">
+      <section class="auth-story" aria-labelledby="authStoryTitle">
+        <div class="story-sparkle sparkle-one" aria-hidden="true">✦</div>
+        <div class="story-sparkle sparkle-two" aria-hidden="true">✧</div>
+        <div class="story-sparkle sparkle-three" aria-hidden="true">♡</div>
+        <div class="mascot" aria-hidden="true">
+          <div class="mascot-cloud">☁</div>
+          <div class="mascot-heart">♥</div>
+          <div class="mascot-face"><span class="mascot-eye"></span><span class="mascot-eye"></span><span class="mascot-smile">⌣</span></div>
+          <div class="mascot-feet"><span></span><span></span></div>
+        </div>
+        <p class="eyebrow">YOUR LITTLE CORNER OF HAPPY</p>
+        <h1 id="authStoryTitle">Never miss a <span>special day.</span></h1>
+        <p class="story-copy">Keep birthdays, big moments, and tiny reasons to celebrate close to your heart.</p>
+        <div class="story-chips" aria-label="RememberMe features"><span>🎂 Made for memories</span><span>🔒 Just for you</span></div>
+      </section>
+
+      <section class="auth-card" aria-label="Account access">
+        <div id="authMessage" class="auth-message" role="status" aria-live="polite" hidden></div>
+        <section id="loginPanel">
+          <div class="auth-card-heading"><p class="eyebrow">WELCOME BACK, FRIEND</p><h2>Let’s get you in <span aria-hidden="true">☁️</span></h2><p>Your special days are waiting.</p></div>
+          <button id="googleLoginBtn" class="google-btn" type="button"><span class="google-mark" aria-hidden="true">G</span>Continue with Google</button>
+          <div class="auth-divider"><span>or sign in with</span></div>
+          <div class="auth-tabs" role="tablist" aria-label="Choose a sign-in method">
+            <button id="emailTab" class="auth-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="emailLoginForm">Email</button>
+            <button id="usernameTab" class="auth-tab" type="button" role="tab" aria-selected="false" aria-controls="usernameLoginForm">Username</button>
+          </div>
+          <form id="emailLoginForm" class="auth-form">
+            <label for="loginEmail">Email address</label>
+            <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required>
+            <label for="emailLoginPassword">Password</label>
+            <div class="password-field"><input id="emailLoginPassword" type="password" autocomplete="current-password" placeholder="Your password" required><button class="password-toggle" type="button" data-password-toggle="emailLoginPassword" aria-label="Show password">Show</button></div>
+            <button class="text-link forgot-link" id="forgotEmailBtn" type="button">Forgot password?</button>
+            <button class="auth-submit" type="submit">Log in <span aria-hidden="true">→</span></button>
+          </form>
+          <form id="usernameLoginForm" class="auth-form" hidden>
+            <label for="loginUsername">Username</label>
+            <input id="loginUsername" type="text" autocomplete="username" placeholder="your_username" maxlength="24" autocapitalize="none" spellcheck="false" required>
+            <label for="usernameLoginPassword">Password</label>
+            <div class="password-field"><input id="usernameLoginPassword" type="password" autocomplete="current-password" placeholder="Your password" required><button class="password-toggle" type="button" data-password-toggle="usernameLoginPassword" aria-label="Show password">Show</button></div>
+            <button class="text-link forgot-link" id="forgotUsernameBtn" type="button">Use a recovery code</button>
+            <button class="auth-submit" type="submit">Log in <span aria-hidden="true">→</span></button>
+          </form>
+          <p class="auth-switch">New around here? <button id="showSignupBtn" class="text-link" type="button">Create an account</button></p>
+        </section>
+
+        <section id="signupPanel" hidden>
+          <div class="auth-card-heading"><p class="eyebrow">LET’S MAKE IT OFFICIAL</p><h2>Your happy place awaits <span aria-hidden="true">💌</span></h2><p>Choose a username and a password. Email is optional.</p></div>
+          <form id="signupForm" class="auth-form">
+            <label for="signupUsername">Username</label>
+            <input id="signupUsername" type="text" autocomplete="username" placeholder="3–24 letters, numbers, or _" minlength="3" maxlength="24" autocapitalize="none" spellcheck="false" required aria-describedby="usernameHint usernameAvailability">
+            <p id="usernameHint" class="field-hint">You can use this to log in without an email.</p>
+            <p id="usernameAvailability" class="field-hint availability" aria-live="polite"></p>
+            <label for="signupEmail">Email <span class="optional">(optional)</span></label>
+            <input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254">
+            <p class="field-hint">Add one for email sign-in and email recovery.</p>
+            <label for="signupPassword">Create password</label>
+            <div class="password-field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" placeholder="At least 10 characters" required aria-describedby="passwordRequirements"><button class="password-toggle" type="button" data-password-toggle="signupPassword" aria-label="Show password">Show</button></div>
+            <p id="passwordRequirements" class="field-hint">Use at least 10 characters. A longer, unique passphrase is best.</p>
+            <label for="signupConfirmPassword">Confirm password</label>
+            <div class="password-field"><input id="signupConfirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" placeholder="Type it again" required><button class="password-toggle" type="button" data-password-toggle="signupConfirmPassword" aria-label="Show password">Show</button></div>
+            <button class="auth-submit" type="submit">Create my account <span aria-hidden="true">✨</span></button>
+          </form>
+          <p class="auth-switch">Already have an account? <button id="showLoginBtn" class="text-link" type="button">Log in</button></p>
+          <p class="privacy-footnote">Passwords are handled by Supabase Auth, never saved in your browser.</p>
+        </section>
+
+        <section id="recoveryPanel" hidden>
+          <div class="auth-card-heading"><p class="eyebrow">A FRESH START</p><h2>Get back to your dates <span aria-hidden="true">🌷</span></h2><p id="recoveryDescription">Choose the recovery method for your account.</p></div>
+          <form id="emailRecoveryForm" class="auth-form">
+            <label for="recoveryEmail">Email address</label>
+            <input id="recoveryEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required>
+            <button class="auth-submit" type="submit">Send a reset link <span aria-hidden="true">→</span></button>
+          </form>
+          <form id="usernameRecoveryForm" class="auth-form" hidden>
+            <label for="recoveryUsername">Username</label>
+            <input id="recoveryUsername" type="text" autocomplete="username" maxlength="24" required>
+            <label for="recoveryCode">Recovery code</label>
+            <input id="recoveryCode" type="text" autocomplete="one-time-code" maxlength="40" autocapitalize="characters" required>
+            <label for="recoveryNewPassword">New password</label>
+            <div class="password-field"><input id="recoveryNewPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required><button class="password-toggle" type="button" data-password-toggle="recoveryNewPassword" aria-label="Show password">Show</button></div>
+            <button class="auth-submit" type="submit">Reset password <span aria-hidden="true">→</span></button>
+          </form>
+          <p class="auth-switch"><button id="backToLoginBtn" class="text-link" type="button">← Back to log in</button></p>
+        </section>
+
+        <section id="resetPanel" hidden>
+          <div class="auth-card-heading"><p class="eyebrow">ALMOST THERE</p><h2>Pick a new password <span aria-hidden="true">🌈</span></h2><p>Choose a long, unique password for your account.</p></div>
+          <form id="resetPasswordForm" class="auth-form">
+            <label for="resetNewPassword">New password</label>
+            <div class="password-field"><input id="resetNewPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required><button class="password-toggle" type="button" data-password-toggle="resetNewPassword" aria-label="Show password">Show</button></div>
+            <label for="resetConfirmPassword">Confirm new password</label>
+            <input id="resetConfirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
+            <button class="auth-submit" type="submit">Save new password <span aria-hidden="true">→</span></button>
+          </form>
+        </section>
+
+        <section id="recoveryCodePanel" class="recovery-code-panel" hidden>
+          <div class="auth-card-heading"><p class="eyebrow">SAVE THIS SOMEWHERE SAFE</p><h2>Your recovery code <span aria-hidden="true">🗝️</span></h2><p>This code is shown only once. Keep it private and separate from your password.</p></div>
+          <code id="recoveryCodeValue" class="recovery-code-value"></code>
+          <button id="continueAfterSignupBtn" class="auth-submit" type="button">I’ve saved my code <span aria-hidden="true">→</span></button>
+        </section>
+      </section>
+    </main>
+    <footer class="auth-footer">Made with 💜 · RememberMe · Your moments stay yours</footer>
+  </div>
+
+  <div id="dashboardView" class="app-shell" hidden>
     <header class="topbar">
       <a class="brand" href="#" aria-label="RememberMe home"><span class="brand-icon">🎉</span><span>Remember<span class="brand-accent">Me</span></span></a>
-      <button id="installBtn" class="install-btn" hidden>＋ Install app</button>
+      <div class="account-tools"><span id="profileLabel" class="profile-label"></span><button id="logoutBtn" class="logout-btn" type="button">Log out</button><button id="installBtn" class="install-btn" hidden>＋ Install app</button></div>
     </header>
 
     <main>
@@ -75,11 +187,13 @@
         <div class="calendar-grid" id="calendarGrid" aria-label="Occasions by date"></div>
         <div class="selected-date-details" id="selectedDateDetails" aria-live="polite"></div>
       </section>
-      <p class="privacy-note">🔒 Your occasions are saved on this device in this browser.</p>
+      <div id="legacyImportNotice" class="legacy-import-notice" hidden><span>🌼 We found occasions saved on this device.</span><button id="importLegacyBtn" class="text-link" type="button">Import them into this account</button></div>
+      <p class="privacy-note">🔒 Your occasions are private to your account.</p>
     </main>
     <footer>Made with 💜 · RememberMe</footer>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="auth.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

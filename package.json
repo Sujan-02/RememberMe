@@ -1,0 +1,13 @@
+{
+  "name": "rememberme",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check auth.js && node --check script.js && node --check api/_lib/server.js && node --check api/auth/login.js && node --check api/auth/signup.js && node --check api/auth/username.js && node --check api/auth/google.js && node --check api/auth/callback.js && node --check api/auth/session.js && node --check api/auth/logout.js && node --check api/auth/recovery-email.js && node --check api/auth/recovery-username.js && node --check api/auth/reset-password.js && node --check api/occasions.js"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.1",
+    "cookie": "^0.7.2"
+  }
+}

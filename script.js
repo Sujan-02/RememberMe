@@ -1,4 +1,4 @@
-const STORAGE_KEY = "rememberme_occasions_v1";
+const LEGACY_STORAGE_KEY = "rememberme_occasions_v1";
 
 const form = document.getElementById("occasionForm");
 const nameInput = document.getElementById("occasionName");
@@ -14,7 +14,7 @@ const toast = document.getElementById("toast");
 const calendarGrid = document.getElementById("calendarGrid");
 const selectedDateDetails = document.getElementById("selectedDateDetails");
 
-let occasions = loadOccasions();
+let occasions = [];
 let editingId = null;
 let toastTimer;
 const today = new Date();
@@ -22,17 +22,31 @@ today.setHours(0, 0, 0, 0);
 let calendarMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 let selectedCalendarDate = new Date(today);
 
-function loadOccasions() {
+function loadLegacyOccasions() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return Array.isArray(saved) ? saved : [];
+    const saved = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
+    return Array.isArray(saved) ? saved.filter(item => item && typeof item === "object") : [];
   } catch {
     return [];
   }
 }
 
-function saveOccasions() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(occasions));
+async function request(path, method = "GET", body) {
+  const response = await fetch(path, {
+    method,
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: body === undefined ? { Accept: "application/json" } : { "Content-Type": "application/json", Accept: "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 401) window.dispatchEvent(new CustomEvent("rememberme:session-expired"));
+    const error = new Error(result.error || "That didn’t work. Please try again.");
+    error.status = response.status;
+    throw error;
+  }
+  return result;
 }
 
 function showToast(message) {
@@ -231,10 +245,9 @@ function categoryEmoji(category) {
   return ({ Birthday: "🎂", Anniversary: "💐", "College event": "🎓", Festival: "🪔", Meeting: "📌", Personal: "💖", Other: "✨" })[category] || "✨";
 }
 
-form.addEventListener("submit", event => {
+form.addEventListener("submit", async event => {
   event.preventDefault();
   const occasion = {
-    id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
     name: nameInput.value.trim(),
     date: dateInput.value,
     category: categoryInput.value,
@@ -247,17 +260,26 @@ form.addEventListener("submit", event => {
     return;
   }
 
-  if (editingId) {
-    occasions = occasions.map(item => item.id === editingId ? occasion : item);
-    showToast("Occasion updated successfully!");
-  } else {
-    occasions.push(occasion);
-    showToast("Your occasion has been saved!");
+  const saveButton = document.getElementById("saveBtn");
+  saveButton.disabled = true;
+  try {
+    const saved = editingId
+      ? await request("/api/occasions", "PATCH", { ...occasion, id: editingId })
+      : await request("/api/occasions", "POST", occasion);
+    if (editingId) {
+      occasions = occasions.map(item => item.id === editingId ? saved.occasion : item);
+      showToast("Occasion updated successfully!");
+    } else {
+      occasions.push(saved.occasion);
+      showToast("Your occasion has been saved!");
+    }
+    resetForm();
+    renderOccasions();
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    saveButton.disabled = false;
   }
-
-  saveOccasions();
-  resetForm();
-  renderOccasions();
 });
 
 function startEdit(id) {
@@ -275,14 +297,18 @@ function startEdit(id) {
   document.querySelector(".form-panel").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function deleteOccasion(id) {
+async function deleteOccasion(id) {
   const item = occasions.find(occasion => occasion.id === id);
   if (!item || !confirm(`Delete "${item.name}"?`)) return;
-  occasions = occasions.filter(occasion => occasion.id !== id);
-  saveOccasions();
-  renderOccasions();
-  showToast("Occasion deleted.");
-  if (editingId === id) resetForm();
+  try {
+    await request("/api/occasions", "DELETE", { id });
+    occasions = occasions.filter(occasion => occasion.id !== id);
+    renderOccasions();
+    showToast("Occasion deleted.");
+    if (editingId === id) resetForm();
+  } catch (error) {
+    showToast(error.message);
+  }
 }
 
 function resetForm() {
@@ -316,8 +342,65 @@ function checkTodaysReminders() {
   }
 }
 
-renderOccasions();
-checkTodaysReminders();
+function updateLegacyImportNotice() {
+  const notice = document.getElementById("legacyImportNotice");
+  const count = loadLegacyOccasions().length;
+  notice.hidden = count === 0;
+  document.getElementById("importLegacyBtn").textContent = `Import ${count} saved ${count === 1 ? "occasion" : "occasions"} into this account`;
+}
+
+document.getElementById("importLegacyBtn").addEventListener("click", async event => {
+  const button = event.currentTarget;
+  const legacy = loadLegacyOccasions();
+  if (!legacy.length) {
+    updateLegacyImportNotice();
+    return;
+  }
+  button.disabled = true;
+  try {
+    const items = legacy.map((item, index) => ({
+      legacyId: String(item.id ?? `legacy-${index}`),
+      name: item.name,
+      date: item.date,
+      category: item.category,
+      notes: item.notes || "",
+      repeat: Boolean(item.repeat)
+    }));
+    await request("/api/occasions", "POST", { items });
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    const result = await request("/api/occasions");
+    occasions = result.occasions;
+    renderOccasions();
+    updateLegacyImportNotice();
+    showToast(`${items.length} saved ${items.length === 1 ? "occasion" : "occasions"} imported.`);
+  } catch (error) {
+    showToast(`Import wasn’t completed: ${error.message}`);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+window.RememberMeDashboard = {
+  async load(profile) {
+    document.getElementById("profileLabel").textContent = profile.username ? `@${profile.username}` : (profile.displayName || "Your account");
+    try {
+      const result = await request("/api/occasions");
+      occasions = result.occasions;
+      renderOccasions();
+      updateLegacyImportNotice();
+      checkTodaysReminders();
+    } catch (error) {
+      if (error.status !== 401) showToast(error.message);
+    }
+  },
+  clear() {
+    occasions = [];
+    editingId = null;
+    resetForm();
+    renderOccasions();
+    document.getElementById("legacyImportNotice").hidden = true;
+  }
+};
 
 // Progressive Web App install prompt (supported browsers only).
 let installPrompt = null;
