@@ -1,6 +1,7 @@
 import {
   createAdminClient,
   enforceRateLimit,
+  logBackendError,
   normalizeUsername,
   requireMethod,
   sendError,
@@ -19,6 +20,7 @@ export default async function handler(req, res) {
       .select("user_id")
       .eq("username", username)
       .maybeSingle();
+    if (error) logBackendError("Username availability query failed", error);
     if (error) throw new Error("Username availability could not be checked.");
     sendJson(res, 200, { available: !data });
   } catch (error) {

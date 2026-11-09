@@ -1,6 +1,7 @@
 import {
   createSessionClient,
   enforceRateLimit,
+  logBackendError,
   readJson,
   requireMethod,
   requireSameOrigin,
@@ -20,7 +21,10 @@ export default async function handler(req, res) {
     const { error } = await client.auth.resetPasswordForEmail(email, {
       redirectTo: `${req.headers.origin}/api/auth/callback?flow=recovery`
     });
-    if (error) return sendJson(res, 503, { error: "Email recovery isn’t available right now. Please try again later." });
+    if (error) {
+      logBackendError("Email recovery request failed", error, [email]);
+      return sendJson(res, 503, { error: "Email recovery isn’t available right now. Please try again later." });
+    }
     sendJson(res, 200, { message: "If an account uses that email, a secure reset link will arrive shortly." });
   } catch (error) {
     sendError(res, error);

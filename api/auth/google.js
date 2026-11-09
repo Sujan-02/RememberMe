@@ -1,4 +1,4 @@
-import { createSessionClient, requireMethod, requireSameOrigin, sendError, sendJson } from "../_lib/server.js";
+import { createSessionClient, logBackendError, requireMethod, requireSameOrigin, sendError, sendJson } from "../_lib/server.js";
 
 export default async function handler(req, res) {
   if (!requireMethod(req, res, "POST") || !requireSameOrigin(req, res)) return;
@@ -9,6 +9,7 @@ export default async function handler(req, res) {
       options: { redirectTo: `${req.headers.origin}/api/auth/callback?flow=oauth` }
     });
     if (error || !data.url) {
+      if (error) logBackendError("Google OAuth setup failed", error);
       return sendJson(res, 503, { error: "Google sign-in isn’t configured yet. Please try email or username sign-in." });
     }
     sendJson(res, 200, { url: data.url });

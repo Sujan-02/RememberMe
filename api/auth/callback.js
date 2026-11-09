@@ -1,4 +1,4 @@
-import { createSessionClient } from "../_lib/server.js";
+import { createSessionClient, logBackendError } from "../_lib/server.js";
 
 function redirect(res, path) {
   res.statusCode = 303;
@@ -18,14 +18,17 @@ export default async function handler(req, res) {
     const code = typeof req.query?.code === "string" ? req.query.code : "";
     if (!code) return redirect(res, "/?authError=1");
     const { error } = await client.auth.exchangeCodeForSession(code);
-    if (error) return redirect(res, "/?authError=1");
+    if (error) {
+      logBackendError("Auth callback exchange failed", error, [code]);
+      return redirect(res, "/?authError=1");
+    }
 
     const flow = typeof req.query?.flow === "string" ? req.query.flow : "";
     if (flow === "recovery") return redirect(res, "/?reset=1");
     if (flow === "signup") return redirect(res, "/?auth=confirmed");
     redirect(res, "/");
   } catch (error) {
-    console.error("RememberMe auth callback failed:", error instanceof Error ? error.message : "unknown error");
+    logBackendError("Auth callback failed", error);
     redirect(res, "/?authError=1");
   }
 }

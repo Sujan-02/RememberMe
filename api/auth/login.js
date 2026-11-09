@@ -3,6 +3,7 @@ import {
   createAdminClient,
   createSessionClient,
   enforceRateLimit,
+  logBackendError,
   normalizeUsername,
   readJson,
   requireMethod,
@@ -39,10 +40,12 @@ export default async function handler(req, res) {
         .select("user_id")
         .eq("username", username)
         .maybeSingle();
+      if (profileError) logBackendError("Username sign-in lookup failed", profileError);
       if (profileError) throw new Error("Username lookup is unavailable.");
       if (!profile) return sendJson(res, 401, { error: "Username or password is incorrect." });
       const { data: userResult, error: userError } = await admin.auth.admin.getUserById(profile.user_id);
       if (userError || !userResult.user?.email) {
+        if (userError) logBackendError("Username account lookup failed", userError);
         return sendJson(res, 401, { error: "Username or password is incorrect." });
       }
       signInEmail = userResult.user.email;
@@ -50,7 +53,10 @@ export default async function handler(req, res) {
 
     const client = createSessionClient(req, res);
     const { data, error } = await client.auth.signInWithPassword({ email: signInEmail, password });
-    if (error || !data.user) return sendJson(res, 401, { error: "Sign-in details are incorrect." });
+    if (error || !data.user) {
+      if (error) logBackendError("Password sign-in rejected", error, [email, signInEmail, password]);
+      return sendJson(res, 401, { error: "Sign-in details are incorrect." });
+    }
     const result = await authenticatedProfile(client);
     if (!result) return sendJson(res, 401, { error: "Your session could not be verified. Please sign in again." });
     sendJson(res, 200, { profile: result.profile });

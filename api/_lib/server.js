@@ -24,6 +24,9 @@ export function getConfig() {
   if (missing.length) {
     throw new Error(`Authentication backend is not configured. Set ${missing.join(", ")} in the server environment.`);
   }
+  if (Buffer.byteLength(config.rateLimitSecret, "utf8") < 32) {
+    throw new Error("Authentication backend is not configured. RATE_LIMIT_SECRET must contain at least 32 bytes.");
+  }
   return config;
 }
 
@@ -71,9 +74,24 @@ export function sendJson(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+export function logBackendError(context, error, sensitiveValues = []) {
+  const source = error && typeof error === "object" ? error : {};
+  let message = typeof source.message === "string"
+    ? source.message
+    : error instanceof Error ? error.message : "Unknown backend error.";
+  for (const value of sensitiveValues) {
+    if (typeof value === "string" && value) message = message.split(value).join("[redacted]");
+  }
+  console.error(`RememberMe ${context}:`, {
+    code: typeof source.code === "string" ? source.code : undefined,
+    status: Number.isFinite(source.status) ? source.status : undefined,
+    message: message.replace(/[\r\n]+/g, " ").slice(0, 500)
+  });
+}
+
 export function sendError(res, error) {
   const message = error instanceof Error ? error.message : "Unexpected server error.";
-  console.error("RememberMe API error:", message);
+  logBackendError("API request failed", error);
   const status = error instanceof RequestError
     ? error.status
     : /not configured|rate limiter is unavailable/i.test(message) ? 503 : 500;
@@ -152,6 +170,7 @@ export async function enforceRateLimit(req, res, action, subject, limit = 10, wi
       p_window_seconds: windowSeconds
     });
     if (error) {
+      logBackendError("Rate-limit RPC failed", error);
       throw new Error(`Rate limiter is unavailable: ${error.message}`);
     }
     if (data !== true) {
@@ -168,6 +187,7 @@ export async function getProfile(client, user) {
     .select("username, display_name, has_email")
     .eq("user_id", user.id)
     .maybeSingle();
+  if (error) logBackendError("Profile query failed", error);
   if (error || !data) throw new Error("Your account profile could not be loaded.");
   return {
     username: data.username,

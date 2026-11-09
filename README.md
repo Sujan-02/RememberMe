@@ -4,7 +4,9 @@ RememberMe is a small, static PWA with Vercel serverless API routes and Supabase
 
 ## Set up the backend
 
-1. Create a Supabase project. In **SQL Editor**, run [`supabase/migrations/202611090001_rememberme_auth.sql`](./supabase/migrations/202611090001_rememberme_auth.sql).
+1. Create a Supabase project. In **SQL Editor**, run the files in `supabase/migrations` in numeric order:
+   - [`202611090001_rememberme_auth.sql`](./supabase/migrations/202611090001_rememberme_auth.sql) creates the account/profile, occasion, and rate-limit schema.
+   - [`202611090002_auth_rate_limit_rpc.sql`](./supabase/migrations/202611090002_auth_rate_limit_rpc.sql) ensures the rate-limit RPC has the exact signature used by the API, grants execution only to `service_role`, and asks PostgREST to reload its schema cache.
 2. In Vercel, set these **server-side environment variables** for every environment you use:
    - `SUPABASE_URL` — the project URL from Supabase API settings.
    - `SUPABASE_ANON_KEY` — the project's public/anon key. It is read only by server functions in this app.
@@ -23,6 +25,7 @@ The app intentionally does not include credentials. Until the migration is appli
 - Username/password accounts use a random internal, non-routable email created by the server. Username lookup is private; the browser receives neither that address nor service credentials.
 - A high-entropy recovery code is shown once at signup for recovery without email. Save it somewhere private. The server stores only a salted scrypt hash; it is not recoverable if lost.
 - Username availability and authentication attempts are rate-limited with a database-backed counter. Vercel Functions validate request shape, enforce same-origin writes, and use Supabase Auth to validate credentials.
+- If an API log reports that `public.consume_auth_rate_limit(p_bucket, p_limit, p_window_seconds)` is missing, verify both migrations have completed successfully. The repair migration recreates the function and reloads PostgREST's schema cache; if the cache is still stale, run `NOTIFY pgrst, 'reload schema';` in the Supabase SQL Editor.
 - Google sign-in is completed by Supabase OAuth and the server callback.
 - Occasion queries use the signed-in user's session and are additionally constrained by Postgres RLS. Hiding the dashboard is only a UI convenience, not the access-control boundary.
 - The service worker caches static app assets only; it bypasses API routes and never caches private occasion responses.
