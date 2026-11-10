@@ -1,4 +1,4 @@
-const CACHE_NAME = "rememberme-static-v2";
+const CACHE_NAME = "rememberme-static-v3";
 const APP_FILES = ["./", "./index.html", "./style.css", "./script.js", "./auth.js", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", event => {

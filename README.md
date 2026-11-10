@@ -1,37 +1,37 @@
 # RememberMe
 
-RememberMe is a small, static PWA with Vercel serverless API routes and Supabase Auth/Postgres. The browser never receives a Supabase service-role key or stores an auth token in `localStorage`. API routes set `HttpOnly`, `SameSite=Lax` cookies; occasion rows are protected by database RLS.
+RememberMe is an existing static PWA with Vercel serverless API routes and Supabase Auth/Postgres. People sign up, sign in, and recover accounts using a username, password, and one-time recovery code. Email addresses and external login providers are not part of the user-facing flow. Supabase Auth uses a random, non-routable synthetic address created on the server because its password API requires an email identifier.
 
-## Set up the backend
+## Supabase setup
 
-1. Create a Supabase project. In **SQL Editor**, run the files in `supabase/migrations` in numeric order:
-   - [`202611090001_rememberme_auth.sql`](./supabase/migrations/202611090001_rememberme_auth.sql) creates the account/profile, occasion, and rate-limit schema.
-   - [`202611090002_auth_rate_limit_rpc.sql`](./supabase/migrations/202611090002_auth_rate_limit_rpc.sql) ensures the rate-limit RPC has the exact signature used by the API, grants execution only to `service_role`, and asks PostgREST to reload its schema cache.
-2. In Vercel, set these **server-side environment variables** for every environment you use:
-   - `SUPABASE_URL` — the project URL from Supabase API settings.
-   - `SUPABASE_ANON_KEY` — the project's public/anon key. It is read only by server functions in this app.
-   - `SUPABASE_SERVICE_ROLE_KEY` — the service-role key. Keep it only in Vercel's encrypted environment settings; never put it in frontend files.
-   - `RATE_LIMIT_SECRET` — a random secret of at least 32 bytes, used to hash rate-limit identifiers. For example, generate one locally with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` and paste the output directly into Vercel.
-3. In Supabase **Authentication → URL Configuration**, set the Site URL to your deployed app origin and add `https://YOUR-APP-DOMAIN/api/auth/callback` to the allowed redirect URLs. Keep email confirmation enabled if you want email ownership verified.
-4. For Google, enable the Google provider in Supabase **Authentication → Providers**. Add Supabase's displayed OAuth callback URL to the Google OAuth client's authorized redirect URIs, and enter the Google client ID/secret in Supabase only. Do not put the Google secret in this repository. Add your deployed app callback URL to Supabase's allowed redirect URLs.
-5. If Vercel's project root is not already the `RememberMe` folder, set that folder as the project root so `/api` functions deploy alongside `index.html`. Add the environment variables to Vercel and redeploy.
-6. For local development, copy `.env.example` to `.env.local`, fill it with values from your own Supabase project, install dependencies with `npm install`, then run `npx vercel dev`. Never commit `.env.local`.
+1. In the existing Supabase project, open **SQL Editor** and run the existing migration files in numeric order:
+   - [`202611090001_rememberme_auth.sql`](./supabase/migrations/202611090001_rememberme_auth.sql) creates the profiles, occasions, RLS policies, and rate-limit RPC.
+   - [`202611090002_auth_rate_limit_rpc.sql`](./supabase/migrations/202611090002_auth_rate_limit_rpc.sql) repairs/grants the rate-limit RPC and reloads PostgREST's schema cache.
+2. Keep Supabase Auth's email/password provider enabled internally. No SMTP, email confirmation, Google provider, OAuth client, or email redirect configuration is needed for this username flow. The server creates users as already confirmed.
+3. In Vercel, set these server-side environment variables for Development, Preview, and Production as appropriate:
+   - `SUPABASE_URL`: the existing project's URL.
+   - `SUPABASE_ANON_KEY`: the project's anon/public key; only server functions use it.
+   - `SUPABASE_SERVICE_ROLE_KEY`: the service-role key. Store only in Vercel's encrypted environment settings; never expose it to browser code.
+   - `RATE_LIMIT_SECRET`: a randomly generated secret with at least 32 bytes, used to HMAC rate-limit keys.
+4. Set the Vercel project root to `RememberMe` if it is not already set, then redeploy.
+5. For local development, copy `.env.example` to `.env.local`, fill it from the existing Supabase project, run `npm install`, and start with `npx vercel dev`. Never commit `.env.local`.
 
-The app intentionally does not include credentials. Until the migration is applied and the Vercel/Supabase settings above are configured, authentication and cloud occasions will report that the backend is unavailable.
+No new database table is required for this change. The existing profile username unique constraint and occasion schema are reused; the migrations above must already be applied to the Supabase project. Do not rerun modified SQL manually as a substitute for checking migration status.
 
-## Accounts and privacy
+## Authentication and privacy
 
-- Email/password accounts use Supabase's email confirmation and reset-link flow.
-- Username/password accounts use a random internal, non-routable email created by the server. Username lookup is private; the browser receives neither that address nor service credentials.
-- A high-entropy recovery code is shown once at signup for recovery without email. Save it somewhere private. The server stores only a salted scrypt hash; it is not recoverable if lost.
-- Username availability and authentication attempts are rate-limited with a database-backed counter. Vercel Functions validate request shape, enforce same-origin writes, and use Supabase Auth to validate credentials.
-- If an API log reports that `public.consume_auth_rate_limit(p_bucket, p_limit, p_window_seconds)` is missing, verify both migrations have completed successfully. The repair migration recreates the function and reloads PostgREST's schema cache; if the cache is still stale, run `NOTIFY pgrst, 'reload schema';` in the Supabase SQL Editor.
-- Google sign-in is completed by Supabase OAuth and the server callback.
-- Occasion queries use the signed-in user's session and are additionally constrained by Postgres RLS. Hiding the dashboard is only a UI convenience, not the access-control boundary.
-- The service worker caches static app assets only; it bypasses API routes and never caches private occasion responses.
+- The browser sends username/password only to same-origin Vercel routes. The server resolves the username to the Supabase Auth account and calls Supabase Auth for password verification.
+- Passwords are stored and verified by Supabase Auth's password hashing. Recovery codes are high-entropy, displayed once, and stored only as salted scrypt hashes.
+- Session tokens are held in `HttpOnly`, `SameSite=Lax` cookies. Service-role credentials remain server-side.
+- Login and recovery errors do not confirm whether an account exists. Signup rate limits attempts, while the database unique constraint safely rejects duplicate usernames, including concurrent registrations.
+- Writes require the same origin. Auth attempts use the database-backed rate limiter.
 
-Existing occasions saved by the old version remain in that browser until the signed-in user chooses **Import them into this account**. Imports are idempotent for each old record and the old browser copy is removed only after the server confirms the import.
+## Cross-device data
 
-## Check the code
+The app's current personal data model is `public.occasions` (birthdays, anniversaries, events, notes, and repeat settings). The browser fetches it after session restoration or login and saves create, edit, delete, and import operations through `/api/occasions`. Each row is assigned the authenticated Supabase user ID; the user's session and Postgres RLS restrict reads and writes to that user. The app does not use browser storage as the permanent cloud copy.
 
-Run `npm run check` for JavaScript syntax checks. A successful local syntax check does **not** verify the live Supabase project, OAuth provider configuration, RLS behavior, or deployed session cookies. Test those after completing setup, using two accounts to confirm occasion isolation.
+Older occasions in `localStorage` are retained until the signed-in user chooses **Import them into this account**. Import is idempotent, and browser data is removed only after the server confirms the import. Other devices load the account's Supabase occasions after login or page refresh.
+
+## Verification
+
+Run `npm run check` for JavaScript syntax checks. This does not verify live Supabase configuration or deployed cookies. After deployment, test registration, duplicate registration, correct/incorrect login, logout, recovery-code reset, refresh persistence, two-device occasion sync, RLS isolation with two users, and rate limiting.

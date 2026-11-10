@@ -13,6 +13,7 @@ const filterInput = document.getElementById("filterCategory");
 const toast = document.getElementById("toast");
 const calendarGrid = document.getElementById("calendarGrid");
 const selectedDateDetails = document.getElementById("selectedDateDetails");
+const syncStatus = document.getElementById("syncStatus");
 
 let occasions = [];
 let editingId = null;
@@ -383,19 +384,28 @@ document.getElementById("importLegacyBtn").addEventListener("click", async event
 window.RememberMeDashboard = {
   async load(profile) {
     document.getElementById("profileLabel").textContent = profile.username ? `@${profile.username}` : (profile.displayName || "Your account");
+    syncStatus.textContent = "Loading your saved occasions…";
+    syncStatus.className = "sync-status";
+    syncStatus.hidden = false;
     try {
       const result = await request("/api/occasions");
       occasions = result.occasions;
+      syncStatus.hidden = true;
       renderOccasions();
       updateLegacyImportNotice();
       checkTodaysReminders();
     } catch (error) {
-      if (error.status !== 401) showToast(error.message);
+      if (error.status !== 401) {
+        syncStatus.textContent = `Cloud sync is unavailable: ${error.message}`;
+        syncStatus.classList.add("is-error");
+        showToast(error.message);
+      }
     }
   },
   clear() {
     occasions = [];
     editingId = null;
+    syncStatus.hidden = true;
     resetForm();
     renderOccasions();
     document.getElementById("legacyImportNotice").hidden = true;

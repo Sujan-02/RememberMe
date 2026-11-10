@@ -36,21 +36,7 @@
         <div id="authMessage" class="auth-message" role="status" aria-live="polite" hidden></div>
         <section id="loginPanel">
           <div class="auth-card-heading"><p class="eyebrow">WELCOME BACK, FRIEND</p><h2>Let’s get you in <span aria-hidden="true">☁️</span></h2><p>Your special days are waiting.</p></div>
-          <button id="googleLoginBtn" class="google-btn" type="button"><span class="google-mark" aria-hidden="true">G</span>Continue with Google</button>
-          <div class="auth-divider"><span>or sign in with</span></div>
-          <div class="auth-tabs" role="tablist" aria-label="Choose a sign-in method">
-            <button id="emailTab" class="auth-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="emailLoginForm">Email</button>
-            <button id="usernameTab" class="auth-tab" type="button" role="tab" aria-selected="false" aria-controls="usernameLoginForm">Username</button>
-          </div>
-          <form id="emailLoginForm" class="auth-form">
-            <label for="loginEmail">Email address</label>
-            <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required>
-            <label for="emailLoginPassword">Password</label>
-            <div class="password-field"><input id="emailLoginPassword" type="password" autocomplete="current-password" placeholder="Your password" required><button class="password-toggle" type="button" data-password-toggle="emailLoginPassword" aria-label="Show password">Show</button></div>
-            <button class="text-link forgot-link" id="forgotEmailBtn" type="button">Forgot password?</button>
-            <button class="auth-submit" type="submit">Log in <span aria-hidden="true">→</span></button>
-          </form>
-          <form id="usernameLoginForm" class="auth-form" hidden>
+          <form id="usernameLoginForm" class="auth-form">
             <label for="loginUsername">Username</label>
             <input id="loginUsername" type="text" autocomplete="username" placeholder="your_username" maxlength="24" autocapitalize="none" spellcheck="false" required>
             <label for="usernameLoginPassword">Password</label>
@@ -62,15 +48,11 @@
         </section>
 
         <section id="signupPanel" hidden>
-          <div class="auth-card-heading"><p class="eyebrow">LET’S MAKE IT OFFICIAL</p><h2>Your happy place awaits <span aria-hidden="true">💌</span></h2><p>Choose a username and a password. Email is optional.</p></div>
+          <div class="auth-card-heading"><p class="eyebrow">LET’S MAKE IT OFFICIAL</p><h2>Your happy place awaits <span aria-hidden="true">💌</span></h2><p>Choose a username and a password.</p></div>
           <form id="signupForm" class="auth-form">
             <label for="signupUsername">Username</label>
-            <input id="signupUsername" type="text" autocomplete="username" placeholder="3–24 letters, numbers, or _" minlength="3" maxlength="24" autocapitalize="none" spellcheck="false" required aria-describedby="usernameHint usernameAvailability">
+            <input id="signupUsername" type="text" autocomplete="username" placeholder="3–24 letters, numbers, or _" minlength="3" maxlength="24" autocapitalize="none" spellcheck="false" required aria-describedby="usernameHint">
             <p id="usernameHint" class="field-hint">You can use this to log in without an email.</p>
-            <p id="usernameAvailability" class="field-hint availability" aria-live="polite"></p>
-            <label for="signupEmail">Email <span class="optional">(optional)</span></label>
-            <input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254">
-            <p class="field-hint">Add one for email sign-in and email recovery.</p>
             <label for="signupPassword">Create password</label>
             <div class="password-field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" placeholder="At least 10 characters" required aria-describedby="passwordRequirements"><button class="password-toggle" type="button" data-password-toggle="signupPassword" aria-label="Show password">Show</button></div>
             <p id="passwordRequirements" class="field-hint">Use at least 10 characters. A longer, unique passphrase is best.</p>
@@ -83,13 +65,8 @@
         </section>
 
         <section id="recoveryPanel" hidden>
-          <div class="auth-card-heading"><p class="eyebrow">A FRESH START</p><h2>Get back to your dates <span aria-hidden="true">🌷</span></h2><p id="recoveryDescription">Choose the recovery method for your account.</p></div>
-          <form id="emailRecoveryForm" class="auth-form">
-            <label for="recoveryEmail">Email address</label>
-            <input id="recoveryEmail" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required>
-            <button class="auth-submit" type="submit">Send a reset link <span aria-hidden="true">→</span></button>
-          </form>
-          <form id="usernameRecoveryForm" class="auth-form" hidden>
+          <div class="auth-card-heading"><p class="eyebrow">A FRESH START</p><h2>Get back to your dates <span aria-hidden="true">🌷</span></h2><p>Enter your username and recovery code to reset your password.</p></div>
+          <form id="usernameRecoveryForm" class="auth-form">
             <label for="recoveryUsername">Username</label>
             <input id="recoveryUsername" type="text" autocomplete="username" maxlength="24" required>
             <label for="recoveryCode">Recovery code</label>
@@ -99,17 +76,6 @@
             <button class="auth-submit" type="submit">Reset password <span aria-hidden="true">→</span></button>
           </form>
           <p class="auth-switch"><button id="backToLoginBtn" class="text-link" type="button">← Back to log in</button></p>
-        </section>
-
-        <section id="resetPanel" hidden>
-          <div class="auth-card-heading"><p class="eyebrow">ALMOST THERE</p><h2>Pick a new password <span aria-hidden="true">🌈</span></h2><p>Choose a long, unique password for your account.</p></div>
-          <form id="resetPasswordForm" class="auth-form">
-            <label for="resetNewPassword">New password</label>
-            <div class="password-field"><input id="resetNewPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required><button class="password-toggle" type="button" data-password-toggle="resetNewPassword" aria-label="Show password">Show</button></div>
-            <label for="resetConfirmPassword">Confirm new password</label>
-            <input id="resetConfirmPassword" type="password" autocomplete="new-password" minlength="10" maxlength="128" required>
-            <button class="auth-submit" type="submit">Save new password <span aria-hidden="true">→</span></button>
-          </form>
         </section>
 
         <section id="recoveryCodePanel" class="recovery-code-panel" hidden>
@@ -169,6 +135,7 @@
         <section class="panel list-panel">
           <div class="section-heading list-heading"><div><p class="eyebrow">DON'T MISS A MOMENT</p><h2>Your occasions</h2></div><span class="heading-emoji">🎁</span></div>
           <div class="toolbar"><input id="searchInput" type="search" placeholder="Search occasions..." aria-label="Search occasions"><select id="filterCategory" aria-label="Filter by category"><option value="All">All categories</option><option>Birthday</option><option>Anniversary</option><option>College event</option><option>Festival</option><option>Meeting</option><option>Personal</option><option>Other</option></select></div>
+          <p id="syncStatus" class="sync-status" role="status" aria-live="polite" hidden></p>
           <div id="occasionList" class="occasion-list"></div>
           <div id="emptyState" class="empty-state"><div>🌼</div><h3>Your special dates live here</h3><p>Add your first occasion using the form.</p></div>
         </section>
